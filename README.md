@@ -1,3 +1,1 @@
-"# BDTA" 
-"# BDTA" 
-"# BDTA" 
+The Assignments of Big Data Techonologies.

@@ -60,7 +60,10 @@ javac -classpath ${HADOOP_CLASSPATH} -d ${PROJECT_PATH}/bin ${PROJECT_PATH}/${SR
 if [ $? -ne 0 ]; then
     echo "Compilation FAILED. Exiting."
     exit 1
+else
+	echo "Compilation SUCCESSFULL."
 fi
+	
 
 echo "--- 2. Creating JAR File (${JAR_NAME}) ---"
 # ADD: Create the MANIFEST file, specifying the full class path (package.ClassName)
@@ -68,8 +71,17 @@ echo "Main-Class: wordcountshakespere.WordCountCompleteShakespere" > ${PROJECT_P
 
 # '-C classes' includes the compiled classes from the classes directory
 # -c means create, -v means verbose, -f specifies the file name
-jar -cvfm ${PROJECT_PATH}/${JAR_NAME} ${PROJECT_PATH}/${MANIFEST_FILE} -C ${PROJECT_PATH}/bin .
+jar -cvfm ${PROJECT_PATH}/${JAR_NAME} ${PROJECT_PATH}/${MANIFEST_FILE} -C ${PROJECT_PATH}/bin . > $NULL 2>&1
 
+if [ $? -ne 0 ]; then
+    echo "Jar File Creation FAILED. Exiting."
+    exit 1
+else
+	echo "Jar File Creation SUCCESSFULL."
+fi
+
+# Clean up the manifest file (optional)
+rm "${PROJECT_PATH}/${MANIFEST_FILE}" > /dev/null
 
 # =======================================================================
 # 3. HDFS SETUP AND CLEANUP
@@ -80,7 +92,7 @@ echo "--- 3. HDFS Setup ---"
 # Upload Input File (Complete_Shakespeare.txt)
 hdfs dfs -mkdir -p ${HDFS_INPUT_DIR}
 echo "Uploading input file: ${INPUT_FILE} to ${HDFS_INPUT_DIR}"
-hdfs dfs -put -f ${INPUT_FILE} ${HDFS_INPUT_DIR}/	>  2>
+hdfs dfs -put -f ${INPUT_FILE} ${HDFS_INPUT_DIR}/ > $NULL  2>&1
 
 if [ $? -ne 0 ]; then
     echo "Uploading $INPUT_FILE FAILED. Exiting."
@@ -98,7 +110,7 @@ fi
 
 # Clean up the output directory (required)
 echo "Cleaning up HDFS output directory: ${HDFS_OUTPUT_DIR}"
-hdfs dfs -rm -r -skipTrash ${HDFS_OUTPUT_DIR} > /dev/null 2>&1
+hdfs dfs -rm -r -skipTrash ${HDFS_OUTPUT_DIR} > $NULL 2>&1
 
 
 # =======================================================================
@@ -116,7 +128,7 @@ INPUT_PATH="${HDFS_INPUT_DIR}/${INPUT_FILE}"
 OUTPUT_PATH="${HDFS_OUTPUT_DIR}"
 
 echo "Running with: yarn jar ${PROJECT_PATH}/${JAR_NAME} ${INPUT_PATH} ${OUTPUT_PATH}"
-yarn jar ${PROJECT_PATH}/${JAR_NAME} ${INPUT_PATH} ${OUTPUT_PATH}
+yarn jar ${PROJECT_PATH}/${JAR_NAME} ${INPUT_PATH} ${OUTPUT_PATH} > $NULL 2>&1
 
 # =======================================================================
 # 5. VERIFICATION
